@@ -1,0 +1,23 @@
+{
+  "name": "todoapiserver",
+  "version": "1.0.0",
+  "description": "A basic Todo App's API Server",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "node ./test"
+  },
+  "author": "Suresh Prajapati",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^3.0.2",
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.16.4",
+    "jsonwebtoken": "^8.3.0",
+    "nodemongoclient": "git+https://github.com/sp-suresh/nodemongoclient.git",
+    "nodewinstonlogger": "git+https://github.com/sp-suresh/nodewinstonlogger.git"
+  }
+}

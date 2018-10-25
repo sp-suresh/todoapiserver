@@ -1,0 +1,80 @@
+What do you need to build?
+
+You need to create an application to maintain Todo List. Front-end should be in React-Redux and back-end should be in NodeJS.
+
+ 
+
+Todo Client
+1. User Login
+
+2. Add a task
+
+3. Delete task(s)
+
+4. Update a task
+
+5. List of tasks
+
+6. Attachments
+
+7. Priority Assignment
+
+ 
+
+Todo server
+1. Auth Management
+
+2. User Management
+
+3. Rest APIs to perform all the necessary actions mentioned above.
+
+ 
+
+What should you use?
+
+Libraries
+
+Node Frameworks (Strongloop preferable)
+React
+Redux
+Styled-components (Bonus)
+
+ 
+
+Where should you look for?
+Strongloop / Express https://strongloop.com
+Database of your choice
+React https://reactjs.org/
+Redux https://redux.js.org/
+Material UI https://material-ui.com
+Styled-components https://www.styled-components.com/docs/basics
+
+ 
+
+Bounty
+1.      Send Notifications
+
+2.      Archive tasks
+
+3.      Export Tasks in pdf
+
+4.      readme.md (Documentation of project, libraries, and steps to run the project)
+
+5.      Styled-components
+
+6.      Test cases
+
+7.      Deploy it on some host like Github, Firebase, etc.
+
+
+You have 7 days to complete the assignment, please create a GitHub repository and share the link with us, also update us in 3 days about the progress you have done.
+
+If you have any concern/question. Feel free to shoot an email or call +91-8767014333 (Shivam).
+
+ 
+
+----------------------------------------------------------------------------------------
+People Interactive DISCLAIMER and CONFIDENTIALITY CAUTION
+----------------------------------------------------------------------------------------
+This email and any files transmitted with it are confidential and intended solely for the use of the individual or entity to whom they are addressed. Unauthorized reading, dissemination, distribution or copying of this communication is prohibited. If you are not the intended recipient, any disclosure, copying, distribution or any action taken or omitted to be taken in reliance on it, is prohibited and may be unlawful. If you have received this communication in error, please notify us immediately and promptly destroy the original communication. Thank you for your cooperation. Please note that any views or opinions presented in this email are solely those of the author and may not necessarily represent those of the company. Communicating through email is not secure and capable of interception, corruption and delays. Anyone communicating with People Interactive (I) Private Limited by email accepts the risks involved and their consequences. The recipient should check this email and any attachments for the presence of viruses. People Interactive (I) Private Limited accepts no liability for any damage caused by any virus transmitted by this email.
+
