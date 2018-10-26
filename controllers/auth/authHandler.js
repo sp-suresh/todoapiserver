@@ -19,7 +19,6 @@ async function login(req, res){
     }
     
     var usrObj = await todoDb.findDocFieldsByFilter('users', {eml}, {_id: 0, hashSalt: 0}, 1)
-    console.log('usrObj', usrObj);
     if(!usrObj || !usrObj.length){
       return notFound(res, 'No such user found!')
     }
@@ -33,7 +32,7 @@ async function login(req, res){
     delete usrObj['hashSalt']
     delete usrObj['pwdHash']
 
-    res.cookie(cookieConf.name, usrObj, cookieConf.secret, { maxAge: cookieConf.maxAge, httpOnly: cookieConf.httpOnly, signed: true });
+    res.cookie(cookieConf.name, usrObj, { maxAge: cookieConf.maxAge, httpOnly: cookieConf.httpOnly, signed: true });
     success(res, usrObj);
   }
   catch(e){
@@ -42,7 +41,8 @@ async function login(req, res){
 }
 
 async function logout(req, res){
-
+  res.clearCookie(cookieConf.name, { maxAge: cookieConf.maxAge, httpOnly: cookieConf.httpOnly, signed: true })
+  success(res)
 }
 
 module.exports = {

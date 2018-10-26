@@ -2,7 +2,7 @@ global.logger = require('nodewinstonlogger')
 
 logger.info(`Starting Todo API Server!`)
 
-var {mongo, PORT} = require('./keys')
+var {mongo, PORT, cookie} = require('./keys')
 var {todoDb} = require('./lib/mongoDbClient')
 var {notFound} = require('./middlewares/basicResHandler')
 var express = require("express")
@@ -17,7 +17,7 @@ todoDb.connect(mongo, () => {
   }));
 
   app.use(bodyParser.json())
-  app.use(require('cookie-parser')());
+  app.use(require('cookie-parser')(cookie.secret));
 
   router.use('/todo', require('./controllers/todo'))
   router.use('/auth', require('./controllers/auth'))

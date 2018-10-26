@@ -1,22 +1,20 @@
-var jwt = require('jsonwebtoken')
 var {unauthorised} = require('./basicResHandler')
-var keys = require('../keys')
-var cookieConf = keys.cookie
-async function verifyCookie(req, res, next) {
+var {cookie} = require('../keys')
+
+function verifyCookie(req, res, next) {
   try{
-    var token = req.signedCookies[cookieConf.name] || ""
-    if (!token.length){
-      return unauthorised(res, 'Token absent')
+    var ckData = req.signedCookies[cookie.name] || ""
+    logger.debug('ckData', ckData)
+    if (!ckData || !Object.keys(ckData).length){
+      return unauthorised(res, 'Cookie absent')
     }
 
-    var decoded = await jwt.verify(token, jwtConf.secret)
-    if(decoded){
-      req.tkn = decoded.id
-      next()
-    }
+    req.user = ckData;
+    next()
   }
   catch(e){
-    unauthorised(res, 'Failed to authenticate token.')
+    logger.error(e)
+    unauthorised(res, 'Failed to authenticate user.')
   }  
 }
 
