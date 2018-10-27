@@ -1,148 +1,134 @@
 var {serverError, clientError, success} = require('../../middlewares/basicResHandler')
-var {db} = require('../../lib/mongoDbClient');
-
-function addNewTodo(req, res){
+var {todoDb, ObjectId, isValidObjectIdStr} = require('../../lib/mongoDbClient')
+async function addNewTodo(req, res){
   try{
-    var body = req.body || {};
-    if(Object.keys(venues).indexOf(body.venueTypeId.toString()) === -1){
-      return clientError(res, 'Please provide a valid venueTypeId!');
+    var body = req.body
+    if(!Object.keys(req.body).length){
+      return clientError(res, 'Please specify a valid req body')
     }
 
-    if(!isValidLatLong(body.location[0], body.location[1])){
-      return clientError(res, `Please provide a lat long details: [${body.lat}, ${body.long}]`);
+    var todoDesc = body.desc || ""
+    if(typeof todoDesc !== 'string' || !todoDesc.length){
+      return clientError(res, 'Please specify a valid todo description')
+    }
+    var todoDoc = {
+      uid: req.user.idx,
+      desc: todoDesc,
+      isa: 1,
+      attUrl: null
+    }
+    if(req.file){
+      todoDoc.attUrl = `attachments/${req.file.filename}`
     }
 
-    var inspectionData = {
-      inspectorId: req.tkn.id,
-      curStatus: 1,
-      lastUpdatedTS: Date.now(),
-      entryTS: Date.now(),
-      venueTypeId: body.venueTypeId,
-      location: [
-        body.location[1], body.location[0]
-      ]
-    };
-
-    db.insertDocumentWithIndex('inspections', inspectionData, function(e, d) {
-      if(e){
-        serverError(res, e);
-      }
-      else{
-        if(d.result.ok)
-          success(res, {msg: `Added new Inspection successfully`});
-        else{
-          serverError(res, 'Success, but no record was inserted');
-        }
-      }
-    });
+    todoDoc.ets = Date.now()
+    var insertedDoc = await todoDb.insertDocument('todos', todoDoc)
+    if(insertedDoc.result.n === 1 && insertedDoc.result.ok === 1){
+      success(res)
+    }
+    else{
+      serverError(res, 'No todo record was inserted')
+    }
   }
   catch(e){
-    serverError(res, e);
+    serverError(res, e)
   }
 }
 
-// function filterInspections(req, res){
-//   try{
-//     var qs = req.query || {};
-//     var dbQuery = {'$and': []};
-
-//     if(qs.fr > 0){
-//       dbQuery['$and'].push({entryTS: {$gte: parseInt(qs.fr)}});
-//     }
-
-//     if(qs.to > 0){
-//       dbQuery['$and'].push({entryTS: {$lte: parseInt(qs.to)}});
-//     }
-
-//     if(qs.vt > 0){
-//       dbQuery['$and'].push({venueTypeId: parseInt(qs.vt)});
-//     }
-
-//     if(qs.curSt > 0){
-//       dbQuery['$and'].push({curStatus: parseInt(qs.curSt)});
-//     }
-
-//     if(qs.closeTo){
-//       var points = (qs.closeTo || "").split(',');
-//       if(points.length !== 2){
-//         return clientError(res, 'Please specify a valid param value for closeTo, like closeTo=lat,long');
-//       }
-
-//       points[0] = parseInt(points[0]);
-//       points[1] = parseInt(points[1]);
-
-//       if(!isValidLatLong(points[0], points[1])){
-//         return clientError(res, 'Please specify a valid lat long values');
-//       }
-//       dbQuery['$and'].push({location : {$near: [points[1], points[0]], $maxDistance: 0.10}});
-//     }
-
-//     if(!dbQuery['$and'].length)
-//       dbQuery['$and'] = [{}];
-
-//     var aggQuery = [
-//       {$match: dbQuery},
-//       {
-//         $lookup: {
-//           from: 'inspectionStatusMaster',
-//           localField: 'curStatus',
-//           foreignField: 'idx',
-//           as: "inspectionStatus"
-//         },
-//       },
-//       {$unwind: '$inspectionStatus'},
-//       {
-//         $lookup: {
-//           from: 'inspectors',
-//           localField: 'inspectorId',
-//           foreignField: 'idx',
-//           as: "inspectors"
-//         },
-//       },
-//       {$unwind: '$inspectors'},
-//       {
-//         $lookup: {
-//           from: 'venues',
-//           localField: 'venueTypeId',
-//           foreignField: 'idx',
-//           as: "venues"
-//         },
-//       },
-//       {$unwind: '$venues'},
-//       {   
-//         $project:{
-//           _id : 0,
-//           lastUpdatedTS: 1,
-//           entryTS: 1,
-//           location: 1,
-//           idx: 1,
-//           inspectorNm: "$inspectors.nm",
-//           currStatus: "$inspectionStatus.nm",
-//           venueType: "$venues.nm",
-//         }
-//       },
-//       {$limit: qs.lmt || 20},
-//       {$sort : {entryTS : -1}}
-//     ];
+async function getTodo(req, res){
+  try{
+    var qs = req.query
     
-//     if(qs.offset > 0)
-//       aggQuery.push({$skip: qs.offset});
+    var lmt = parseInt(qs.lmt) || 10
+    var off = parseInt(qs.off) || 0
+    var uid = req.user.idx
 
-//     db.getDocumentCountByQuery('inspections', dbQuery, (err, totalCount) => {
-//       if(err) return serverError(res, err);
-//       db.findDocByAggregation('inspections', aggQuery, (e, d) => {
-//         if(e) return serverError(res, e);
-//         // d['totalCount'] = totalCount;
-//         success(res, {d, totalCount});
-//       });
-//     });
-//   }
-//   catch(e){
-//     serverError(res, e);
-//   }
-// }
+    if(typeof off != 'number' || typeof lmt != 'number' || isNaN(off) || isNaN(lmt)){
+      return clientError(res, 'Please specify a valid query string parameters')
+    }
+
+    var ttc = await todoDb.getDocumentCountByQuery('todos', {uid, isa: 1})
+
+    var todoList = await todoDb.findDocFieldsByFilter('todos', {uid}, {uid: 0}, lmt, off)
+
+    success(res, {ttc, todoList})
+  }
+  catch(e){
+    serverError(res, e)
+  }
+}
+
+async function updateTodo(req, res){
+  try{
+    var body = req.body
+
+    logger.debug('body', body)
+
+    if(!Object.keys(req.body).length){
+      return clientError(res, 'Please specify a valid req body')
+    }
+
+    var todoDesc = body.desc || ""
+    if(typeof todoDesc !== 'string' || !todoDesc.length){
+      return clientError(res, 'Please specify a valid todo description')
+    }
+
+    var id = body.id || ''
+
+    if(typeof id != 'string' || !id.length || !isValidObjectIdStr(id)){
+      return clientError(res, 'Please specify a valid todo id in query string')
+    }
+
+    var todoDoc = {
+      desc: todoDesc,
+      attUrl: null
+    }
+    if(req.file){
+      todoDoc.attUrl = "attachments/"+req.file.filename
+    }
+    else{
+      //Delete old file
+    }
+    var updateAck = await todoDb.findOneAndUpdate('todos', {_id: ObjectId(id), uid: req.user.idx}, todoDoc)
+
+    if(updateAck.lastErrorObject.n){
+      success(res, {msg: 'todo updated successfully!'})
+    }
+    else{
+      clientError(res, 'No such record found')
+    }
+  }
+  catch(e){
+    serverError(res, e)
+  }
+}
+
+async function deleteTodo(req, res){
+  try{
+    var id = req.query.id || ''
+
+    if(typeof id != 'string' || !id.length || !isValidObjectIdStr(id)){
+      return clientError(res, 'Please specify a valid todo id in query string')
+    }
+
+    var delAck = await todoDb.findOneAndUpdate('todos', {_id: ObjectId(id), uid: req.user.idx, isa: 1}, {isa: 0, delOn: Date.now()})
+    logger.debug('delAck', delAck)
+    if(delAck.lastErrorObject.n){
+      success(res, {msg: 'todo deleted successfully!'})
+    }
+    else{
+      clientError(res, 'No such record found')
+    }
+  }
+  catch(e){
+    // if(e.message === )
+    serverError(res, e)
+  }
+}
 
 module.exports = {
-  addNewTodo
-  // filterInspections: filterInspections
+  addNewTodo,
+  getTodo,
+  updateTodo,
+  deleteTodo
 }

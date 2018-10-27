@@ -17,15 +17,18 @@ todoDb.connect(mongo, () => {
   }));
 
   app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: false }))
   app.use(require('cookie-parser')(cookie.secret));
 
   router.use('/todo', require('./controllers/todo'))
   router.use('/auth', require('./controllers/auth'))
   
   app.use('/api', router)
+  // app.use('/public/attachments', )
   app.use(function(req, res, next){
     notFound(res)
   });
+
   app.listen(PORT, (e) => {
     if(e){
       logger.error('Error starting application', e)

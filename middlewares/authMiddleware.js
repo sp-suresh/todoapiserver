@@ -1,4 +1,4 @@
-var {unauthorised} = require('./basicResHandler')
+var {unauthorised, serverError} = require('./basicResHandler')
 var {cookie} = require('../keys')
 
 function verifyCookie(req, res, next) {
@@ -13,8 +13,7 @@ function verifyCookie(req, res, next) {
     next()
   }
   catch(e){
-    logger.error(e)
-    unauthorised(res, 'Failed to authenticate user.')
+    serverError(res, 'Failed to authenticate user.')
   }  
 }
 

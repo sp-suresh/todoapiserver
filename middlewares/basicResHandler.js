@@ -1,5 +1,3 @@
-// var logger = require('../lib/logger')
-
 function serverError(res, ex){
   const sc = 500
   logger.error(`${sc} - Exception, ${res.req.method} - ${res.req.originalUrl}`, ex)
