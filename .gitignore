@@ -1,6 +1,6 @@
 node_modules
 tmp
 test.js
-./restart.sh
+restart.sh
 .test.js
-./public/attachments/
+public/attachments/

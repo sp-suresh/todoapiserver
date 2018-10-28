@@ -1,5 +1,8 @@
 var {serverError, clientError, success} = require('../../middlewares/basicResHandler')
 var {todoDb, ObjectId, isValidObjectIdStr} = require('../../lib/mongoDbClient')
+const {attFileLoc, attRoute, serverHost} = require('../../keys')
+var fs = require('fs')
+
 async function addNewTodo(req, res){
   try{
     var body = req.body
@@ -15,10 +18,10 @@ async function addNewTodo(req, res){
       uid: req.user.idx,
       desc: todoDesc,
       isa: 1,
-      attUrl: null
+      fileNm: null
     }
     if(req.file){
-      todoDoc.attUrl = `attachments/${req.file.filename}`
+      todoDoc.fileNm = req.file.filename
     }
 
     todoDoc.ets = Date.now()
@@ -49,9 +52,9 @@ async function getTodo(req, res){
 
     var ttc = await todoDb.getDocumentCountByQuery('todos', {uid, isa: 1})
 
-    var todoList = await todoDb.findDocFieldsByFilter('todos', {uid}, {uid: 0}, lmt, off)
+    var todoList = await todoDb.findDocFieldsByFilter('todos', {uid}, {uid: 0}, lmt, off, {ets: 1})
 
-    success(res, {ttc, todoList})
+    success(res, {ttc, todoList, fileHost: `${serverHost}/${attRoute}`})
   }
   catch(e){
     serverError(res, e)
@@ -61,8 +64,6 @@ async function getTodo(req, res){
 async function updateTodo(req, res){
   try{
     var body = req.body
-
-    logger.debug('body', body)
 
     if(!Object.keys(req.body).length){
       return clientError(res, 'Please specify a valid req body')
@@ -81,14 +82,19 @@ async function updateTodo(req, res){
 
     var todoDoc = {
       desc: todoDesc,
-      attUrl: null
+      fileNm: null
     }
+
     if(req.file){
-      todoDoc.attUrl = "attachments/"+req.file.filename
+      todoDoc.fileNm = `${req.file.filename}`
     }
-    else{
-      //Delete old file
+
+    var oldFile = await todoDb.findDocFieldsByFilter('todos', {_id: ObjectId(id), uid: req.user.idx}, {fileNm: 1, _id: 0}, 1)
+
+    if(oldFile && oldFile.length && oldFile[0].fileNm){
+      fs.unlink(`${attFileLoc}/${oldFile[0].fileNm}`)
     }
+
     var updateAck = await todoDb.findOneAndUpdate('todos', {_id: ObjectId(id), uid: req.user.idx}, todoDoc)
 
     if(updateAck.lastErrorObject.n){
@@ -112,7 +118,7 @@ async function deleteTodo(req, res){
     }
 
     var delAck = await todoDb.findOneAndUpdate('todos', {_id: ObjectId(id), uid: req.user.idx, isa: 1}, {isa: 0, delOn: Date.now()})
-    logger.debug('delAck', delAck)
+    
     if(delAck.lastErrorObject.n){
       success(res, {msg: 'todo deleted successfully!'})
     }
@@ -121,7 +127,6 @@ async function deleteTodo(req, res){
     }
   }
   catch(e){
-    // if(e.message === )
     serverError(res, e)
   }
 }

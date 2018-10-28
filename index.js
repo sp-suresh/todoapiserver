@@ -9,6 +9,7 @@ var express = require("express")
 var router = express.Router()
 var app = express()
 var bodyParser = require('body-parser')
+const {verifyCookie} = require('./middlewares/authMiddleware')
 
 todoDb.connect(mongo, () => {
   logger.info(`Connected to mongodb database: ${mongo.dbName}!`)
@@ -24,7 +25,7 @@ todoDb.connect(mongo, () => {
   router.use('/auth', require('./controllers/auth'))
   
   app.use('/api', router)
-  // app.use('/public/attachments', )
+  app.use('/static', express.static('./public'))
   app.use(function(req, res, next){
     notFound(res)
   });
