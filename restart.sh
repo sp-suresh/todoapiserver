@@ -1,1 +1,0 @@
-pm2 restart ./ecosystem.config.js --env development --update-env || pm2 logs 'Todo API Server'
