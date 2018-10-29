@@ -1,4 +1,4 @@
-# A basic Todo App(beta)
+# A Basic Todo App(beta)
 
 This app allows registered user to login and add their todo with an optional attachment
 
