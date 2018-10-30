@@ -13,10 +13,7 @@ const {verifyCookie} = require('./middlewares/authMiddleware')
 
 todoDb.connect(mongo, () => {
   logger.info(`Connected to mongodb database: ${mongo.dbName}!`)
-  app.use(bodyParser.urlencoded({
-    extended: true
-  }));
-
+  
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: false }))
   app.use(require('cookie-parser')(cookie.secret));
