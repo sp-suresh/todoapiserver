@@ -9,7 +9,6 @@ var express = require("express")
 var router = express.Router()
 var app = express()
 var bodyParser = require('body-parser')
-const {verifyCookie} = require('./middlewares/authMiddleware')
 
 todoDb.connect(mongo, () => {
   logger.info(`Connected to mongodb database: ${mongo.dbName}!`)
